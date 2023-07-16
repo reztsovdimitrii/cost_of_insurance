@@ -3,7 +3,7 @@
 version: '3.9'
 
 services:
-  postgres:
+  db:
     container_name: postgres
     image: postgres:12.3-alpine
     environment:
@@ -13,6 +13,10 @@ services:
     ports:
       - "5435:5432"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d database"]
+      interval: 5s
+      retries: 10
 
   web:
     build: .
@@ -28,4 +32,5 @@ services:
     ports:
       - 8000:8000
     depends_on:
-      - postgres
+      db:
+        condition: service_healthy
