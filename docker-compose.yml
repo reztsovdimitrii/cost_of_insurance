@@ -1,0 +1,31 @@
+# docker-compose.yml
+
+version: '3.9'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:12.3-alpine
+    environment:
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "admin"
+      POSTGRES_DB: "database"
+    ports:
+      - "5435:5432"
+    restart: unless-stopped
+
+  web:
+    build: .
+    command: >
+      bash -c "
+      aerich upgrade &&
+      uvicorn app.main:app --proxy-headers --reload --host 0.0.0.0 --port 8000
+      "
+    volumes:
+      - ./app/:/app
+    environment: 
+      - DATABASE_CONNECTION_URL=postgres://root:admin@postgres:5432/database
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
